@@ -1,0 +1,16 @@
+{
+  "name": "panda-git-version",
+  "version": "1.0.0",
+  "description": "add git tag like rg rc",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "inquirer": "^6.2.0",
+    "shelljs": "^0.8.3"
+  }
+}
