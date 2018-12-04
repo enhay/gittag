@@ -2,37 +2,32 @@ const inquirer = require('inquirer');
 const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
-const shell = require('shelljs');
+const shell = require('./libs/git.js');
 
-const versionPath = path.join(process.cwd(), 'version.txt');
-
-const questions = [
-  {
-    type: 'confirm',
-    name: 'confirm',
-    message: `当前版本号为[${chalk.red(version)}],继续?`
-  },
-  {
-    type: 'list',
-    name: 'tag',
-    massage: `plese chose `,
-    choices: [
-      { name: "working(w)", value: 4 },
-      { name: "fixbug(b)", value: 3 },
-      { name: "add feature(f)", value: 2 },
-      { name: "struct revolution(s)", value: 1 }
-    ],
-    when: (answers) => {
-      return answers.confirm;
+async function getNewVersion(version) {
+  let answers = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'confirm',
+      message: `当前版本号为[${chalk.red(version)}],继续?`
+    },
+    {
+      type: 'list',
+      name: 'tag',
+      massage: `plese chose `,
+      choices: [
+        { name: "working(w)", value: 4 },
+        { name: "fixbug(b)", value: 3 },
+        { name: "add feature(f)", value: 2 },
+        { name: "struct revolution(s)", value: 1 }
+      ],
+      when: (answers) => {
+        return answers.confirm;
+      }
     }
-  }
-];
-
-
-async function updateVersion(versoin) {
-  let answers = await inquirer.prompt(questions)
+  ]);
   if (!answers.confirm) {
-    console.log('donothing');
+    console.error('donothing');
     return;
   }
   const newVersion = version.split('.').map((varsionPart, index) => {
@@ -41,8 +36,8 @@ async function updateVersion(versoin) {
       return val + 1;
     }
     return val;
-  });
-  answers = inquirer.prompt({
+  }).join('.');
+  answers = await inquirer.prompt({
     type: 'confirm',
     name: 'update',
     message: `确定更新版本号为[${chalk.red(newVersion)}],并提交代码?`,
@@ -53,52 +48,43 @@ async function updateVersion(versoin) {
   return newVersion;
 }
 
-
-function checkPath(file) {
-  return fs.existsSync(path.join(workDir, file));
-}
-
-async function initVersion() {
+async function getVersion() {
+  const wordDir = process.cwd();
+  if (!fs.existsSync(path.join(wordDir, '.git'))) {
+    console.log('当前目录不是git项目根目录');
+    return;
+  }
+  const versionPath = path.join(wordDir, 'version.txt');
+  if (fs.existsSync(versionPath)) {
+    return fs.readFileSync(versionPath, 'utf8');
+  }
+  const version = '0.0.0.1';
   const answer = await inquirer.prompt({
     type: 'confirm',
     name: 'init',
     message: 'version.txt不存在,要新建一个吗?',
   });
   if (answer.init) {
-    fs.writeFileSync(versionPath, '0.0.0.0');
-    return true;
+    fs.writeFileSync(versionPath, version);
+    return version;
   }
-  return false;
-}
-
-async function pushTag(version) {
-  fs.writeFileSync(versionPath, version);
-  //""CUR_BRANCH=`git branch | grep \* | awk '{print $2}'`; git pull origin $CUR_BRANCH ; git push origin $CUR_BRANC      H ; """
-  shell.exec(`git commit -a -m [${version}] `);
-  // 获取当前分支名 git pull origin $CUR_BRANCH ; git push origin $CUR_BRANC 
-  shell.exec('git rev-parse --abbrev-ref HEAD')
-
-  shell.exec(`"git tag $VER; git push --tags "`)
+  return null;
 }
 
 async function run() {
-  if (!checkPath('.git')) {
-    console.log('当前目录不是git项目根目录');
+  const version = await getVersion();
+  if (!version) {
     return;
   }
-  if (!checkPath('version.txt')) {
-    const init = await initVersion();
-    if (!init) {
-      return;
-    }
-  }
-  const version = fs.readFileSync(versionPath, 'utf8');
-  const newVersion = await updateVersion(version);
+  const newVersion = await getNewVersion(version);
   // 终止
   if (!newVersion) {
     return;
   }
-  pushTag(newVersion);
+  const wordDir = process.cwd();
+  fs.writeFileSync(path.join(wordDir, 'version.txt'), newVersion);
+  shell.pushTag(newVersion);
 }
 
+run();
 
