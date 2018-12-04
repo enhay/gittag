@@ -4,7 +4,10 @@
   "description": "add git tag like rg rc",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": ""
+  },
+  "bin": {
+    "rgrc": "./index.js"
   },
   "author": "",
   "license": "ISC",

@@ -73,8 +73,12 @@ async function initVersion() {
 
 async function pushTag(version) {
   fs.writeFileSync(versionPath, version);
-  shell.exec(`git commit -a -m [${version}] && git tag -a v.${version} -m '${version}'`);
-  shell.exec(`git push --follow-tags`)
+  //""CUR_BRANCH=`git branch | grep \* | awk '{print $2}'`; git pull origin $CUR_BRANCH ; git push origin $CUR_BRANC      H ; """
+  shell.exec(`git commit -a -m [${version}] `);
+  // 获取当前分支名 git pull origin $CUR_BRANCH ; git push origin $CUR_BRANC 
+  shell.exec('git rev-parse --abbrev-ref HEAD')
+
+  shell.exec(`"git tag $VER; git push --tags "`)
 }
 
 async function run() {
