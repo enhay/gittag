@@ -1,6 +1,6 @@
 {
-  "name": "panda-git-version",
-  "version": "1.0.0",
+  "name": "panda-git-tag",
+  "version": "1.0.1",
   "description": "add git tag like rg rc",
   "main": "index.js",
   "scripts": {
