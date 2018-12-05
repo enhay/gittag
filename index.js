@@ -6,45 +6,68 @@ const fs = require('fs');
 const path = require('path');
 const shell = require('./libs/git.js');
 
-async function getNewVersion(version) {
-  let answers = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'confirm',
-      message: `当前版本号为[${chalk.red(version)}],继续?`
-    },
-    {
-      type: 'list',
-      name: 'tag',
-      massage: `plese chose `,
-      choices: [
-        { name: "working(w)", value: 4 },
-        { name: "fixbug(b)", value: 3 },
-        { name: "add feature(f)", value: 2 },
-        { name: "struct revolution(s)", value: 1 }
-      ],
-      when: (answers) => {
-        return answers.confirm;
-      }
+function updateVersion(version, ref) {
+  const versionPaths = version.split('.').reverse();
+  return versionPaths.map((item, index) => {
+    const val = parseInt(item, 10);
+    if (index === 0) {
+      return val + 1;
     }
-  ]);
-  if (!answers.confirm) {
-    console.error('donothing');
-    return;
-  }
-  const newVersion = version.split('.').map((varsionPart, index) => {
-    const val = parseInt(varsionPart, 10);
-    if (index === answers.tag - 1 || index === 3) {
+    if (index === ref - 1) {
       return val + 1;
     }
     return val;
-  }).join('.');
-  answers = await inquirer.prompt({
+  }).reverse().join('.');
+}
+
+
+
+async function getNewVersion(version) {
+  let answer = await inquirer.prompt(
+    {
+      type: 'confirm',
+      name: 'confirm',
+      message: `当前版本号为[${chalk.red(version)}],是否继续?`
+    }
+  );
+  if (!answer.confirm) {
+    return;
+  }
+
+  const choices = [];
+  var pushChoice = function (suffix, version) {
+    this.push({
+      name: `${suffix}(${chalk.bold(version)})`,
+      value: version
+    });
+  }.bind(choices);
+
+  pushChoice('1) working', updateVersion(version, 1))
+  pushChoice('2) fixbug', updateVersion(version, 2))
+  pushChoice('3) add feature', updateVersion(version, 3))
+  pushChoice('4) struct revolution', updateVersion(version, 4))
+
+  answer = await inquirer.prompt(
+    {
+      type: 'list',
+      name: 'tag',
+      suffix: '请选择新tag',
+      massage: ``,
+      choices
+    }
+  )
+  console.log(answer)
+  const newVersion = answer.tag;
+  if (!answer.tag) {
+    return;
+  }
+
+  answer = await inquirer.prompt({
     type: 'confirm',
     name: 'update',
     message: `确定更新版本号为[${chalk.red(newVersion)}],并提交代码?`,
   });
-  if (!answers.update) {
+  if (!answer.update) {
     return;
   }
   return newVersion;
