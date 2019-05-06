@@ -1,6 +1,8 @@
 ## 介绍
-基于0.0.0.0(resolvtion feature fixbug working)的版本规则对代码打tag. 
+
+add git tag match [Semantic Versioning 2.0.0](https://semver.org/)
 
 
 ## 使用
-`rgrc`
+`npm i -g huya-git-tag`
+run `gtag` 
