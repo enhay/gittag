@@ -1,13 +1,13 @@
 {
-  "name": "panda-git-tag",
-  "version": "1.0.2",
-  "description": "add git tag like rg rc",
+  "name": "huya-git-tag",
+  "version": "2.0.0",
+  "description": "add git tag",
   "main": "index.js",
   "scripts": {
-    "test": ""
+    "test": "jest"
   },
   "bin": {
-    "rgrc": "./index.js"
+    "gtag": "./bin/run"
   },
   "author": "",
   "license": "ISC",

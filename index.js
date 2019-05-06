@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const inquirer = require('inquirer');
 const chalk = require('chalk');
 const fs = require('fs');
@@ -7,29 +5,41 @@ const path = require('path');
 const shell = require('./libs/git.js');
 
 function updateVersion(version, ref) {
-  const versionPaths = version.split('.').reverse();
-  return versionPaths.map((item, index) => {
-    const val = parseInt(item, 10);
-    if (index === 0) {
-      return val + 1;
-    }
-    if (index === ref - 1) {
-      return val + 1;
-    }
-    return val;
-  }).reverse().join('.');
+  let fn;
+  switch (ref) {
+    case 3:
+      fn = ($0, p1, p2, p3) => {
+        const newTag = parseInt(p3, 10) + 1;
+        return `v${p1}.${p2}.${newTag}`;
+      };
+      break;
+    case 2:
+      fn = ($0, p1, p2, p3) => {
+        const newTag = parseInt(p2, 10) + 1;
+        return `v${p1}.${newTag}.0`;
+      };
+      break;
+    case 1:
+      fn = ($0, p1, p2, p3) => {
+        const newTag = parseInt(p1, 10) + 1;
+        return `v${newTag}.0.0`;
+      };
+      break;
+    default:
+      fn = ($0) => {
+        return $0;
+      }
+      break;
+  }
+  return version.replace(/v(\d+).(\d+).(\d+)/ig, fn);
 }
 
-
-
 async function getNewVersion(version) {
-  let answer = await inquirer.prompt(
-    {
-      type: 'confirm',
-      name: 'confirm',
-      message: `当前版本号为[${chalk.red(version)}],是否继续?`
-    }
-  );
+  let answer = await inquirer.prompt({
+    type: 'confirm',
+    name: 'confirm',
+    message: `当前版本号为[${chalk.red(version)}],是否继续?`
+  });
   if (!answer.confirm) {
     return;
   }
@@ -42,21 +52,18 @@ async function getNewVersion(version) {
     });
   }.bind(choices);
 
-  pushChoice('1) working', updateVersion(version, 1))
-  pushChoice('2) fixbug', updateVersion(version, 2))
-  pushChoice('3) add feature', updateVersion(version, 3))
-  pushChoice('4) struct revolution', updateVersion(version, 4))
+  pushChoice('1) UPDATE PATCH ', updateVersion(version, 3))
+  pushChoice('2) UPDATE MINOR ', updateVersion(version, 2))
+  pushChoice('3) UPDATE MAJOR ', updateVersion(version, 1))
+  //pushChoice('4) 我要自己定', inputTag())
+  answer = await inquirer.prompt({
+    type: 'list',
+    name: 'tag',
+    suffix: '请选择新tag',
+    massage: ``,
+    choices
+  })
 
-  answer = await inquirer.prompt(
-    {
-      type: 'list',
-      name: 'tag',
-      suffix: '请选择新tag',
-      massage: ``,
-      choices
-    }
-  )
-  console.log(answer)
   const newVersion = answer.tag;
   if (!answer.tag) {
     return;
@@ -83,7 +90,7 @@ async function getVersion() {
   if (fs.existsSync(versionPath)) {
     return fs.readFileSync(versionPath, 'utf8');
   }
-  const version = '0.0.0.1';
+  const version = 'v0.1.0';
   const answer = await inquirer.prompt({
     type: 'confirm',
     name: 'init',
@@ -111,5 +118,4 @@ async function run() {
   shell.pushTag(newVersion);
 }
 
-run();
-
+module.exports = run;
